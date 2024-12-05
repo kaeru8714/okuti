@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <title>LOLチーム分け</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Source+Han+Code+JP&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        font-family: "UDデジタル教科書体", monospace;
+        margin: 20px;
+      }
+      input,
+      button {
+        padding: 10px;
+        margin: 5px 0;
+      }
+      .teams {
+        margin-top: 20px;
+        display: flex;
+        gap: 20px;
+      }
+      #lineCount {
+        margin-top: 5px;
+        font-size: 14px;
+        color: #555;
+      }
+      .team {
+        margin-bottom: 20px;
+      }
+      .player {
+        display: flex;
+        align-items: center;
+        margin-bottom: 5px;
+      }
+      .player img {
+        width: 24px;
+        height: 24px;
+        margin-right: 10px;
+      }
+      .out {
+        margin-top: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>LOLカスタムチーム分け</h1>
+    <textarea
+      id="names"
+      rows="15"
+      cols="30"
+      placeholder="名前を改行で入力"
+    ></textarea
+    ><br />
+    <div id="lineCount">参加人数: 0</div>
+    <button onclick="splitTeams()">チーム分け</button>
+    <div class="teams" id="teams"></div>
+    <div class="out" id="out"></div>
+
+    <script>
+      const namesTextarea = document.getElementById("names");
+      const lineCountDisplay = document.getElementById("lineCount");
+      const outDiv = document.getElementById("out");
+
+      const roleImages = {
+        TOP: "Top_icon.webp",
+        JUG: "Jungle_icon.webp",
+        MID: "Middle_icon.webp",
+        ADC: "Bottom_icon.webp",
+        SUP: "Support_icon.webp",
+      };
+
+      function updateLineCount() {
+        const lines = namesTextarea.value
+          .split("\n")
+          .filter((name) => name.trim() !== "");
+        lineCountDisplay.textContent = `参加人数: ${lines.length}`;
+      }
+
+      namesTextarea.addEventListener("input", updateLineCount);
+
+      function splitTeams() {
+        const names = namesTextarea.value
+          .split("\n")
+          .filter((name) => name.trim() !== "");
+        if (names.length < 10) {
+          alert("10人以上の名前を入力してください。");
+          return;
+        }
+
+        // シャッフル
+        for (let i = names.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [names[i], names[j]] = [names[j], names[i]];
+        }
+
+        // チーム参加者と外れ枠の分割
+        const teamNames = names.slice(0, 10);
+        const outNames = names.slice(10);
+
+        const teamAMembers = teamNames.slice(0, 5);
+        const teamBMembers = teamNames.slice(5, 10);
+
+        const roles = ["TOP", "JUG", "MID", "ADC", "SUP"];
+
+        function assignRoles(team) {
+          return team.map((name, index) => ({
+            role: roles[index],
+            name: name,
+          }));
+        }
+
+        const assignedTeamA = assignRoles(teamAMembers);
+        const assignedTeamB = assignRoles(teamBMembers);
+
+        // 既存の表示をクリア
+        document.getElementById("teams").innerHTML = "";
+        outDiv.innerHTML = "";
+
+        displayTeams("チームA", assignedTeamA);
+        displayTeams("チームB", assignedTeamB);
+
+        if (outNames.length > 0) {
+          displayOut(outNames);
+        }
+      }
+
+      function displayTeams(teamName, team) {
+        const teamsDiv = document.getElementById("teams");
+        const teamDiv = document.createElement("div");
+        teamDiv.className = "team";
+
+        const teamTitle = document.createElement("h2");
+        teamTitle.textContent = teamName;
+        teamDiv.appendChild(teamTitle);
+
+        team.forEach((player) => {
+          const playerDiv = document.createElement("div");
+          playerDiv.className = "player";
+
+          const img = document.createElement("img");
+          img.src = roleImages[player.role];
+          img.alt = player.role;
+
+          const nameSpan = document.createElement("span");
+          nameSpan.textContent = `${player.role} ： ${player.name}`;
+
+          playerDiv.appendChild(img);
+          playerDiv.appendChild(nameSpan);
+          teamDiv.appendChild(playerDiv);
+        });
+
+        teamsDiv.appendChild(teamDiv);
+      }
+
+      function displayOut(names) {
+        const outDivElement = document.getElementById("out");
+        const outTitle = document.createElement("h2");
+        outTitle.textContent = "外れ枠";
+        outDivElement.appendChild(outTitle);
+
+        names.forEach((name) => {
+          const nameDiv = document.createElement("div");
+          nameDiv.textContent = name;
+          outDivElement.appendChild(nameDiv);
+        });
+      }
+    </script>
+  </body>
+</html>
